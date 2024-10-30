@@ -1,0 +1,11 @@
+﻿{
+  "Group": "Tax providers",
+  "FriendlyName": "Custom Tax Rules",
+  "SystemName": "Tax.SpecialRules",
+  "Version": "1.0.2",
+  "SupportedVersions": [ "4.60" ],
+  "Author": "i7MEDIA",
+  "DisplayOrder": 1,
+  "FileName": "Nop.Plugin.Tax.CustomRules.dll",
+  "Description": "This plugin allows you to add custom rules when generating tax amounts"
+}
