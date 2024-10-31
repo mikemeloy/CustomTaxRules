@@ -30,17 +30,22 @@ namespace Nop.Plugin.Tax.CustomRules.Services
         public async Task<AddressVerificationDetail> GetAddressInfoAsync(string street, string postalCode, int? addressId)
         {
             var persistedRecord = await _addressVerificationRepository.GetAsync(street, postalCode);
-            var previouslyVerified = persistedRecord is not null;
+            var verified = persistedRecord is not null;
             var addressLookup = AddressLookupFactory
                                     .Init(_httpClient)
                                     .SetStreet(street)
                                     .SetCityStateZip(postalCode)
                                     .Validate();
 
+            if (!addressLookup.IsValid)
+            {
+                return new();
+            }
+
             return
-                previouslyVerified
-                ? persistedRecord
-                : await FetchAndPersistIfNullAsync(addressLookup, addressId);
+                verified
+                    ? persistedRecord
+                    : await FetchAndPersistIfNullAsync(addressLookup, addressId);
         }
         private async Task<AddressVerificationDetail> FetchAndPersistIfNullAsync(IValidateStep step, int? addressId)
         {

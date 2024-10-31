@@ -1,5 +1,6 @@
 ﻿using Nop.Core.Domain.Orders;
 using Nop.Plugin.Tax.CustomRules.Data;
+using Nop.Plugin.Tax.CustomRules.Extensions;
 using Nop.Plugin.Tax.CustomRules.Factories.Models;
 using Nop.Services.Orders;
 using Nop.Services.Tax;
@@ -35,12 +36,22 @@ namespace Nop.Plugin.Tax.CustomRules.Factories
         internal async Task<TaxTotalResult> GenerateAsync()
         {
             var cartItemsWithPrice = await GetCartItemPricesAsync();
-            var cartSubTotal = cartItemsWithPrice.Sum(item => item.Price - item.Discount);
-            var cartTax = cartSubTotal * (_shippingAddress.SalesTaxRate / 100);
+            var cartSubTotal = cartItemsWithPrice.Total();
+            var cartTax = cartSubTotal * _shippingAddress.SalesTaxRate.ToDecimal();
+            var taxRates = GetTaxRateCollection(_shippingAddress.SalesTaxRate, cartTax);
 
             return new()
             {
-                TaxTotal = cartTax
+                TaxTotal = cartTax,
+                TaxRates = taxRates
+            };
+        }
+
+        private static SortedDictionary<decimal, decimal> GetTaxRateCollection(decimal taxRate, decimal totalTax)
+        {
+            return new SortedDictionary<decimal, decimal>
+            {
+                { taxRate, totalTax}
             };
         }
 
@@ -48,12 +59,12 @@ namespace Nop.Plugin.Tax.CustomRules.Factories
         {
             return await Task.WhenAll(_shoppingCart.Select(async item =>
             {
-                var (price, discount, _) = await _shoppingCartService.GetUnitPriceAsync(item, includeDiscounts: true);
+                var (price, discount, discounts) = await _shoppingCartService.GetUnitPriceAsync(item, includeDiscounts: true);
 
                 return new CartItem()
                 {
                     ProductId = item.ProductId,
-                    Price = price,
+                    Price = price * item.Quantity,
                     Discount = discount
                 };
             }));

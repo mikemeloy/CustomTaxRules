@@ -1,6 +1,7 @@
 ﻿using Nop.Plugin.Tax.CustomRules.Extensions;
 using Nop.Plugin.Tax.CustomRules.Factories;
 using Nop.Plugin.Tax.CustomRules.Interfaces;
+using Nop.Plugin.Tax.CustomRules.Models;
 using Nop.Services.Orders;
 using Nop.Services.Plugins;
 using Nop.Services.Tax;
@@ -11,10 +12,12 @@ namespace Nop.Plugin.Tax.CustomRules
     {
         private readonly IAddressService _addressService;
         IShoppingCartService _shoppingCartService;
-        public CustomTaxRule(IAddressService addressService, IShoppingCartService shoppingCartService)
+        ICustomTaxRulesSettingsService _settingsService;
+        public CustomTaxRule(IAddressService addressService, IShoppingCartService shoppingCartService, ICustomTaxRulesSettingsService settingsService)
         {
             _addressService = addressService;
             _shoppingCartService = shoppingCartService;
+            _settingsService = settingsService;
         }
 
         public async Task<TaxRateResult> GetTaxRateAsync(TaxRateRequest taxRateRequest)
@@ -58,6 +61,7 @@ namespace Nop.Plugin.Tax.CustomRules
         /// <returns>A task that represents the asynchronous operation</returns>
         public override async Task InstallAsync()
         {
+            await AddSettingsAsync();
             await base.InstallAsync();
         }
         /// <summary>
@@ -67,6 +71,17 @@ namespace Nop.Plugin.Tax.CustomRules
         public override async Task UninstallAsync()
         {
             await base.UninstallAsync();
+        }
+
+        private async Task AddSettingsAsync()
+        {
+            var settings = SettingsFactory
+                            .Init()
+                            .SetTimeToLive(30)
+                            .SetEndpoint("https://www.yaddress.net/api/Address")
+                            .Generate();
+
+            await _settingsService.SaveSettingsAsync(settings);
         }
     }
 }

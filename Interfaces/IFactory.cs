@@ -28,6 +28,7 @@
     }
     public interface IValidateStep
     {
+        public bool IsValid { get; }
         Task<IAddressResponse> GetAddress();
     }
 }

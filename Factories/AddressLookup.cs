@@ -10,6 +10,7 @@ namespace Nop.Plugin.Tax.CustomRules.Factories
         private readonly IAddressRequest _addressRequest;
         private readonly HttpClient _httpClient;
         private bool _isValid;
+        public bool IsValid => _isValid;
         public AddressLookup(HttpClient httpClient)
         {
             _addressRequest = new AddressRequest();
