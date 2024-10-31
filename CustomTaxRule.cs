@@ -1,4 +1,7 @@
-﻿using Nop.Plugin.Tax.CustomRules.Interfaces;
+﻿using Nop.Plugin.Tax.CustomRules.Extensions;
+using Nop.Plugin.Tax.CustomRules.Factories;
+using Nop.Plugin.Tax.CustomRules.Interfaces;
+using Nop.Services.Orders;
 using Nop.Services.Plugins;
 using Nop.Services.Tax;
 
@@ -7,29 +10,47 @@ namespace Nop.Plugin.Tax.CustomRules
     public class CustomTaxRule : BasePlugin, ITaxProvider
     {
         private readonly IAddressService _addressService;
-        public CustomTaxRule(IAddressService addressService)
+        IShoppingCartService _shoppingCartService;
+        public CustomTaxRule(IAddressService addressService, IShoppingCartService shoppingCartService)
         {
             _addressService = addressService;
+            _shoppingCartService = shoppingCartService;
         }
 
         public async Task<TaxRateResult> GetTaxRateAsync(TaxRateRequest taxRateRequest)
         {
-            //var address = await _addressService.GetAddressInfoAsync("3408 nw pink hill circle","blue springs, mo 64015");
-            await _addressService.SaveAddressDetailsAsync();
+            var address = await _addressService
+                                    .GetAddressInfoAsync(
+                                        street: taxRateRequest.GetStreet(),
+                                        postalCode: taxRateRequest.GetPostalCode(),
+                                        addressId: taxRateRequest.GetAddressId()
+                                    );
 
-            var taxRate = new TaxRateResult();
-            taxRate.TaxRate = .08m;
+            var taxRate = TaxRateLookup
+                            .Init()
+                            .AddAddress(address)
+                            .Generate();
+
             return taxRate;
         }
 
         public async Task<TaxTotalResult> GetTaxTotalAsync(TaxTotalRequest taxTotalRequest)
         {
-            var taxRateResult = new TaxTotalResult
-            {
-                TaxTotal = 999.99m
-            };
+            var shippingAddress = await _addressService.GetAddressById(taxTotalRequest.GetShippingId());
+            var verifiedAddress = await _addressService
+                                            .GetAddressInfoAsync(
+                                                street: shippingAddress.Address1,
+                                                postalCode: shippingAddress.ZipPostalCode,
+                                                addressId: shippingAddress.Id
+                                            );
 
-            return taxRateResult;
+            var taxTotalResult = await TaxTotalLookup
+                                        .Init(_shoppingCartService)
+                                        .AddCartItems(taxTotalRequest.ShoppingCart)
+                                        .AddShippingAddress(verifiedAddress)
+                                        .GenerateAsync();
+
+            return taxTotalResult;
         }
         /// <summary>
         /// Install plugin

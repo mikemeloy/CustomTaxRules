@@ -29,10 +29,6 @@
     </Content>
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="AddressLookup" Version="1.0.0" />
-  </ItemGroup>
-
   <!-- This target execute after "Build" target -->
   <Target Name="NopTarget" AfterTargets="Build">
     <!-- Delete unnecessary libraries from plugins path -->
@@ -41,7 +37,7 @@
 
   <Target Name="FilterCopyLocalItems" AfterTargets="ResolveLockFileCopyLocalProjectDeps">
     <ItemGroup>
-      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"  />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="'%(Filename)' != 'System.Text.Json'" />
     </ItemGroup>
   </Target>
 </Project>

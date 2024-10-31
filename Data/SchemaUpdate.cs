@@ -9,12 +9,12 @@ namespace Nop.Plugin.Tax.CustomRules.Data
     {
         public override void Up()
         {
-            Alter.Table(NameCompatibilityManager.GetTableName(typeof(AddressLookupDetails)))
-                    .AddColumn(nameof(AddressLookupDetails.CreatedBy))
+            Alter.Table(NameCompatibilityManager.GetTableName(typeof(AddressVerificationDetail)))
+                    .AddColumn(nameof(AddressVerificationDetail.CreatedBy))
                     .AsFixedLengthString(50);
 
-            Alter.Table(NameCompatibilityManager.GetTableName(typeof(AddressLookupDetails)))
-                    .AddColumn(nameof(AddressLookupDetails.CreatedDate))
+            Alter.Table(NameCompatibilityManager.GetTableName(typeof(AddressVerificationDetail)))
+                    .AddColumn(nameof(AddressVerificationDetail.CreatedDate))
                     .AsDateTime2()
                     .WithDefaultValue(DateTime.UtcNow);
         }

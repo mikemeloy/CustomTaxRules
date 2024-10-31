@@ -1,42 +1,54 @@
-﻿using AddressLookup;
-using AddressLookup.Interfaces;
-using Nop.Data;
+﻿using Nop.Core.Domain.Common;
 using Nop.Plugin.Tax.CustomRules.Data;
+using Nop.Plugin.Tax.CustomRules.Factories;
 using Nop.Plugin.Tax.CustomRules.Interfaces;
 
 namespace Nop.Plugin.Tax.CustomRules.Services
 {
     public class AddressService : IAddressService
     {
-        private readonly IRepository<AddressLookupDetails> _addressLookupRepository;
+        private readonly IAddressVerificationRepository _addressVerificationRepository;
+        private readonly IAddressRepository _addressRepository;
         private readonly HttpClient _httpClient;
-        public AddressService(HttpClient httpClient, IRepository<AddressLookupDetails> addressLookupRepository)
+        public AddressService(HttpClient httpClient, IAddressVerificationRepository addressVerificationRepository, IAddressRepository addressRepository)
         {
             _httpClient = httpClient;
-            _addressLookupRepository = addressLookupRepository;
+            _addressVerificationRepository = addressVerificationRepository;
+            _addressRepository = addressRepository;
         }
 
-        public async Task<IAddressResponse> GetAddressInfoAsync(string addressOne, string addressTwo)
+        public async Task<Address> GetAddressById(int? id)
         {
-            var address = await AddressSearchFactory.Init(_httpClient)
-                                            .SetAddressOne(addressOne)
-                                            .SetAddressTwo(addressTwo)
-                                            .Validate()
-                                            .GetAddress();
-
-            return address;
-        }
-
-        public async Task<bool> SaveAddressDetailsAsync()
-        {
-            await _addressLookupRepository.InsertAsync(new AddressLookupDetails()
+            if (!id.HasValue)
             {
-                AddressLine1 = "3408 NW Pink Hill Circle",
-                AddressLine2 = "Blue Springs, MO 64015",
-                CreatedBy = "Mike",
-                CreatedDate = DateTime.UtcNow,
-            });
-            return true;
+                return null;
+            }
+
+            return await _addressRepository.GetAddressById(id.Value);
+        }
+
+        public async Task<AddressVerificationDetail> GetAddressInfoAsync(string street, string postalCode, int? addressId)
+        {
+            var persistedRecord = await _addressVerificationRepository.GetAsync(street, postalCode);
+            var previouslyVerified = persistedRecord is not null;
+            var addressLookup = AddressLookupFactory
+                                    .Init(_httpClient)
+                                    .SetStreet(street)
+                                    .SetCityStateZip(postalCode)
+                                    .Validate();
+
+            return
+                previouslyVerified
+                ? persistedRecord
+                : await FetchAndPersistIfNullAsync(addressLookup, addressId);
+        }
+        private async Task<AddressVerificationDetail> FetchAndPersistIfNullAsync(IValidateStep step, int? addressId)
+        {
+            var apiResult = await step.GetAddress();
+            var newEntity = await _addressVerificationRepository.InsertAsync(apiResult);
+            await _addressRepository.UpdateAddressAsync(addressId, apiResult);
+
+            return newEntity;
         }
     }
 }

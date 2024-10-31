@@ -9,7 +9,7 @@ namespace Nop.Plugin.Tax.CustomRules.Data
     {
         public override void Up()
         {
-            Create.TableFor<AddressLookupDetails>();
+            Create.TableFor<AddressVerificationDetail>();
         }
     }
 }

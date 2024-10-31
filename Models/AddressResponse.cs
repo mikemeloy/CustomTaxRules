@@ -1,10 +1,11 @@
-﻿using Nop.Core;
-  
-namespace Nop.Plugin.Tax.CustomRules.Data
+﻿using Nop.Plugin.Tax.CustomRules.Enums;
+using Nop.Plugin.Tax.CustomRules.Interfaces;
+
+namespace Nop.Plugin.Tax.CustomRules.Models
 {
-    public class AddressVerificationDetail : BaseEntity
+    internal class AddressResponse : IAddressResponse
     {
-        public int ErrorCode { get; set; }
+        public ErrorCode ErrorCode { get; set; }
         public string ErrorMessage { get; set; }
         public string AddressLine1 { get; set; }
         public string AddressLine2 { get; set; }
@@ -28,14 +29,12 @@ namespace Nop.Plugin.Tax.CustomRules.Data
         public string CensusBlock { get; set; }
         public decimal Latitude { get; set; }
         public decimal Longitude { get; set; }
-        public int GeoPrecision { get; set; }
+        public GeoPrecision GeoPrecision { get; set; }
         public int TimeZoneOffset { get; set; }
         public bool DstObserved { get; set; }
         public int PlaceFP { get; set; }
         public string CityMunicipality { get; set; }
         public decimal SalesTaxRate { get; set; }
-        public int SalesTaxJurisdiction { get; set; }
-        public string CreatedBy { get; set; }
-        public DateTime CreatedDate { get; set; }
+        public TaxJurisdiction SalesTaxJurisdiction { get; set; }
     }
 }
