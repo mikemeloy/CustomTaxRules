@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using Nop.Core.Domain.Common;
 using Nop.Plugin.Tax.CustomRules.Enums;
 using Nop.Plugin.Tax.CustomRules.Interfaces;
 using Nop.Plugin.Tax.CustomRules.Models;
@@ -13,12 +12,14 @@ internal class AddressLookup : IStepInit, IStepAddressStreet, IStepAddressCitySt
     private readonly HttpClient _httpClient;
     private bool _isValid;
     public bool IsValid => _isValid;
-    public AddressLookup(HttpClient httpClient, IAddressVerificationUsageRepository addressVerificationUsageRepository)
+
+    private AddressLookup(HttpClient httpClient, IAddressVerificationUsageRepository addressVerificationUsageRepository)
     {
         _addressRequest = new AddressRequest();
         _httpClient = httpClient;
         _addressVerificationUsageRepository = addressVerificationUsageRepository;
     }
+    public static IStepInit Init(HttpClient httpClient, IAddressVerificationUsageRepository addressVerificationUsageRepository) => new AddressLookup(httpClient, addressVerificationUsageRepository);
     public IStepAddressStreet SetStreet(string street)
     {
         _addressRequest.Street = street;
@@ -64,15 +65,10 @@ internal class AddressLookup : IStepInit, IStepAddressStreet, IStepAddressCitySt
         await UpdateUsageStatisticsAsync(address.ErrorCode);
         return address;
     }
-
     private async Task UpdateUsageStatisticsAsync(ErrorCode error)
     {
         var addressFound = error == ErrorCode.NoError;
         await _addressVerificationUsageRepository.UpdateUsageStatisticsAsync(addressFound);
     }
-}
-public static class AddressLookupFactory
-{
-    public static IStepInit Init(HttpClient httpClient, IAddressVerificationUsageRepository addressVerificationUsageRepository) => new AddressLookup(httpClient, addressVerificationUsageRepository);
 }
 

@@ -5,69 +5,61 @@ using Nop.Plugin.Tax.CustomRules.Factories.Models;
 using Nop.Services.Orders;
 using Nop.Services.Tax;
 
-namespace Nop.Plugin.Tax.CustomRules.Factories
+namespace Nop.Plugin.Tax.CustomRules.Factories;
+
+public class TaxTotalLookup
 {
+    private readonly IShoppingCartService _shoppingCartService;
+    private IList<ShoppingCartItem> _shoppingCart;
+    private AddressVerificationDetail _shippingAddress;
 
-    public class TaxTotalLookup
+    private TaxTotalLookup(IShoppingCartService shoppingCartService)
     {
-        private readonly IShoppingCartService _shoppingCartService;
-        private IList<ShoppingCartItem> _shoppingCart;
-        private AddressVerificationDetail _shippingAddress;
+        _shoppingCartService = shoppingCartService;
+    }
+    public static TaxTotalLookup Init(IShoppingCartService shoppingCartService) => new(shoppingCartService);
+    public TaxTotalLookup AddCartItems(IList<ShoppingCartItem> shoppingCart)
+    {
+        _shoppingCart = shoppingCart;
+        return this;
+    }
+    public TaxTotalLookup AddShippingAddress(AddressVerificationDetail shippingAddress)
+    {
+        _shippingAddress = shippingAddress;
+        return this;
+    }
+    public async Task<TaxTotalResult> GenerateAsync()
+    {
+        var cartItemsWithPrice = await GetCartItemPricesAsync();
+        var cartSubTotal = cartItemsWithPrice.Total();
+        var cartTax = cartSubTotal * _shippingAddress.SalesTaxRate.ToDecimal();
+        var taxRates = GetTaxRateCollection(_shippingAddress.SalesTaxRate, cartTax);
 
-        public TaxTotalLookup(IShoppingCartService shoppingCartService)
+        return new()
         {
-            _shoppingCartService = shoppingCartService;
-        }
-
-        internal static TaxTotalLookup Init(IShoppingCartService shoppingCartService) => new(shoppingCartService);
-
-        internal TaxTotalLookup AddCartItems(IList<ShoppingCartItem> shoppingCart)
-        {
-            _shoppingCart = shoppingCart;
-            return this;
-        }
-
-        internal TaxTotalLookup AddShippingAddress(AddressVerificationDetail shippingAddress)
-        {
-            _shippingAddress = shippingAddress;
-            return this;
-        }
-
-        internal async Task<TaxTotalResult> GenerateAsync()
-        {
-            var cartItemsWithPrice = await GetCartItemPricesAsync();
-            var cartSubTotal = cartItemsWithPrice.Total();
-            var cartTax = cartSubTotal * _shippingAddress.SalesTaxRate.ToDecimal();
-            var taxRates = GetTaxRateCollection(_shippingAddress.SalesTaxRate, cartTax);
-
-            return new()
-            {
-                TaxTotal = cartTax,
-                TaxRates = taxRates
-            };
-        }
-
-        private static SortedDictionary<decimal, decimal> GetTaxRateCollection(decimal taxRate, decimal totalTax)
-        {
-            return new SortedDictionary<decimal, decimal>
+            TaxTotal = cartTax,
+            TaxRates = taxRates
+        };
+    }
+    private static SortedDictionary<decimal, decimal> GetTaxRateCollection(decimal taxRate, decimal totalTax)
+    {
+        return new SortedDictionary<decimal, decimal>
             {
                 { taxRate, totalTax}
             };
-        }
-
-        private async Task<CartItem[]> GetCartItemPricesAsync()
+    }
+    private async Task<CartItem[]> GetCartItemPricesAsync()
+    {
+        return await Task.WhenAll(_shoppingCart.Select(async item =>
         {
-            return await Task.WhenAll(_shoppingCart.Select(async item =>
-            {
-                var (price, discount, discounts) = await _shoppingCartService.GetUnitPriceAsync(item, includeDiscounts: true);
+            var (price, discount, discounts) = await _shoppingCartService.GetUnitPriceAsync(item, includeDiscounts: true);
 
-                return new CartItem()
-                {
-                    ProductId = item.ProductId,
-                    Price = price * item.Quantity,
-                    Discount = discount
-                };
-            }));
-        }
+            return new CartItem()
+            {
+                ProductId = item.ProductId,
+                Price = price * item.Quantity,
+                Discount = discount
+            };
+        }));
     }
 }

@@ -15,7 +15,6 @@ internal class AddressVerificationUsageRepository : IAddressVerificationUsageRep
         _storeContext = storeContext;
         _addressVerificationUsageRepository = addressVerificationUsageRepository;
     }
-
     public async Task UpdateUsageStatisticsAsync(bool success)
     {
         var store = await _storeContext.GetCurrentStoreAsync();

@@ -5,7 +5,6 @@ using Nop.Plugin.Widgets.ItemDiscount.Models;
 using Nop.Services.Configuration;
 
 namespace Nop.Plugin.Tax.CustomRules.Services;
-
 public class SettingService : ICustomTaxRulesSettingsService
 {
     private readonly ISettingService _settingService;
@@ -16,17 +15,14 @@ public class SettingService : ICustomTaxRulesSettingsService
         _settingService = settingService;
         _storeContext = storeContext;
     }
-
     public async Task SaveSettingsAsync(CustomTaxRuleSettings settings)
     {
         await _settingService.SaveSettingAsync(settings);
     }
-
     public async Task DeleteAllSettingsAsync()
     {
         await _settingService.DeleteSettingAsync<CustomTaxRuleSettings>();
     }
-
     public async Task<ConfigurationModel> GetCurrentSettingsAsync()
     {
         var settings = await LoadCurrentSettingsAsync();
@@ -37,7 +33,6 @@ public class SettingService : ICustomTaxRulesSettingsService
             TimeToLive = settings.TimeToLive,
         };
     }
-
     private async Task<CustomTaxRuleSettings> LoadCurrentSettingsAsync()
     {
         var storeScope = await _storeContext.GetActiveStoreScopeConfigurationAsync();
