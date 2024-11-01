@@ -7,5 +7,6 @@ namespace Nop.Plugin.Tax.CustomRules.Interfaces
     {
         Task SaveSettingsAsync(CustomTaxRuleSettings settings);
         Task<ConfigurationModel> GetCurrentSettingsAsync();
+        Task DeleteAllSettingsAsync();
     }
 }

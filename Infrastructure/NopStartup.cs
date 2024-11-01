@@ -20,6 +20,7 @@ namespace Nop.Plugin.Tax.CustomRules.Infrastructure
             services.AddScoped<IAddressVerificationRepository, AddressVerificationRepository>();
             services.AddScoped<IAddressRepository, AddressRepository>();
             services.AddScoped<ICustomTaxRulesSettingsService, SettingService>();
+            services.AddScoped<IAddressVerificationUsageRepository, AddressVerificationUsageRepository>();
         }
     }
 }

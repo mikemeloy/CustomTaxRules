@@ -7,5 +7,6 @@ namespace Nop.Plugin.Tax.CustomRules.Interfaces
     {
         Task<AddressVerificationDetail> GetAddressInfoAsync(string street, string postalCode, int? addressId);
         Task<Address> GetAddressById(int? id);
+        Task OnAddressChangeEvent(Address address);
     }
 }

@@ -22,6 +22,11 @@ public class SettingService : ICustomTaxRulesSettingsService
         await _settingService.SaveSettingAsync(settings);
     }
 
+    public async Task DeleteAllSettingsAsync()
+    {
+        await _settingService.DeleteSettingAsync<CustomTaxRuleSettings>();
+    }
+
     public async Task<ConfigurationModel> GetCurrentSettingsAsync()
     {
         var settings = await LoadCurrentSettingsAsync();

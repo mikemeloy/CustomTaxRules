@@ -57,8 +57,7 @@ namespace Nop.Plugin.Tax.CustomRules
         }
         /// <summary>
         /// Install plugin
-        /// </summary>
-        /// <returns>A task that represents the asynchronous operation</returns>
+        /// </summary> 
         public override async Task InstallAsync()
         {
             await AddSettingsAsync();
@@ -66,10 +65,10 @@ namespace Nop.Plugin.Tax.CustomRules
         }
         /// <summary>
         /// Uninstall plugin
-        /// </summary>
-        /// <returns>A task that represents the asynchronous operation</returns>
+        /// </summary> 
         public override async Task UninstallAsync()
         {
+            await DeleteSettingsAsync();
             await base.UninstallAsync();
         }
 
@@ -77,11 +76,17 @@ namespace Nop.Plugin.Tax.CustomRules
         {
             var settings = SettingsFactory
                             .Init()
-                            .SetTimeToLive(30)
-                            .SetEndpoint("https://www.yaddress.net/api/Address")
+                            .SetTimeToLive(CustomTaxRuleDefaults.BaseTimeToLive)
+                            .SetEndpoint(CustomTaxRuleDefaults.AddressVerifyEndpoint)
+                            .SetBaseTaxRate(CustomTaxRuleDefaults.BaseTaxRate)
                             .Generate();
 
             await _settingsService.SaveSettingsAsync(settings);
+        }
+
+        private async Task DeleteSettingsAsync()
+        {
+            await _settingsService.DeleteAllSettingsAsync();
         }
     }
 }

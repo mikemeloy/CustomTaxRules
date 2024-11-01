@@ -17,7 +17,7 @@ namespace Nop.Plugin.Tax.CustomRules.Repository
         {
             var query = await _addressLookupRepository
                 .Table
-                .FirstOrDefaultAsync(c => c.AddressLine1 == street);
+                .FirstOrDefaultAsync(avd => avd.AddressLine1 == street);
 
             return query;
         }

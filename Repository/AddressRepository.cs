@@ -1,16 +1,19 @@
-﻿using Nop.Plugin.Tax.CustomRules.Interfaces;
+﻿using Nop.Core.Domain.Common;
+using Nop.Plugin.Tax.CustomRules.Interfaces;
 
 namespace Nop.Plugin.Tax.CustomRules.Repository
 {
     internal class AddressRepository : IAddressRepository
     {
         private readonly Nop.Services.Common.IAddressService _addressService;
-        public AddressRepository(Nop.Services.Common.IAddressService addressService)
+        private readonly Nop.Data.IRepository<Address> _addressRepository;
+        public AddressRepository(Nop.Services.Common.IAddressService addressService, Nop.Data.IRepository<Address> addressRepository)
         {
             _addressService = addressService;
+            _addressRepository = addressRepository;
         }
 
-        public async Task<Core.Domain.Common.Address> GetAddressById(int id)
+        public async Task<Address> GetAddressById(int id)
         {
             var address = await _addressService.GetAddressByIdAsync(id);
 
@@ -29,6 +32,7 @@ namespace Nop.Plugin.Tax.CustomRules.Repository
             currentAddress.Address2 = apiResult.AddressLine2;
             currentAddress.City = apiResult.City;
             currentAddress.County = apiResult.County;
+            currentAddress.CountryId = CustomTaxRuleDefaults.UnitedStatesCountryCode;
             currentAddress.ZipPostalCode = $"{apiResult.Zip}-{apiResult.Zip4}";
 
             var isValid = await _addressService.IsAddressValidAsync(currentAddress);
@@ -38,7 +42,7 @@ namespace Nop.Plugin.Tax.CustomRules.Repository
                 return;
             }
 
-            await _addressService.UpdateAddressAsync(currentAddress);
+            await _addressRepository.UpdateAsync(currentAddress, publishEvent: false);
         }
     }
 }
