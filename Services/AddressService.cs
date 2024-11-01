@@ -46,8 +46,7 @@ public class AddressService : IAddressService
             return new();
         }
 
-        return
-            verified
+        return verified
                 ? persistedRecord
                 : await FetchAndPersistIfNullAsync(addressLookup, addressId);
     }
@@ -68,6 +67,7 @@ public class AddressService : IAddressService
     {
         var apiResult = await step.GetAddress();
         var newEntity = await _addressVerificationRepository.InsertAsync(apiResult);
+
         await _addressRepository.UpdateAddressAsync(addressId, apiResult);
 
         return newEntity;

@@ -10,13 +10,15 @@ internal class AddressLookup : IStepInit, IStepAddressStreet, IStepAddressCitySt
     private readonly IAddressVerificationUsageRepository _addressVerificationUsageRepository;
     private readonly IAddressRequest _addressRequest;
     private readonly HttpClient _httpClient;
+    private readonly ILogging _log;
     private bool _isValid;
     public bool IsValid => _isValid;
 
-    private AddressLookup(HttpClient httpClient, IAddressVerificationUsageRepository addressVerificationUsageRepository)
+    private AddressLookup(HttpClient httpClient, ILogging log, IAddressVerificationUsageRepository addressVerificationUsageRepository)
     {
         _addressRequest = new AddressRequest();
         _httpClient = httpClient;
+        _log = log;
         _addressVerificationUsageRepository = addressVerificationUsageRepository;
     }
     public static IStepInit Init(HttpClient httpClient, IAddressVerificationUsageRepository addressVerificationUsageRepository) => new AddressLookup(httpClient, addressVerificationUsageRepository);
@@ -58,12 +60,25 @@ internal class AddressLookup : IStepInit, IStepAddressStreet, IStepAddressCitySt
     {
         var param = $"AddressLine1={_addressRequest.Street}&AddressLine2={_addressRequest.CityStateZip}";
 
-        using var response = await _httpClient.GetAsync($"https://www.yaddress.net/api/Address?{param}");
-        response.EnsureSuccessStatusCode();
-        var rawResponse = await response.Content.ReadAsStringAsync();
-        var address = JsonConvert.DeserializeObject<AddressResponse>(rawResponse);
-        await UpdateUsageStatisticsAsync(address.ErrorCode);
-        return address;
+        try
+        {
+            using var response = await _httpClient.GetAsync($"https://www.yaddress.net/api/Address?{param}");
+            response.EnsureSuccessStatusCode();
+            var rawResponse = await response.Content.ReadAsStringAsync();
+            var address = JsonConvert.DeserializeObject<AddressResponse>(rawResponse);
+            await UpdateUsageStatisticsAsync(address.ErrorCode);
+            return address;
+        }
+        catch (Exception e)
+        {
+            _log.LogError("Unable to validate address", e);
+        }
+
+        return new AddressResponse()
+        {
+            ErrorCode = ErrorCode.System,
+            ErrorMessage = "Unable to return address"
+        };
     }
     private async Task UpdateUsageStatisticsAsync(ErrorCode error)
     {

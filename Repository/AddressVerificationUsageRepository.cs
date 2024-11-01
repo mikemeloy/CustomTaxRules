@@ -9,11 +9,13 @@ internal class AddressVerificationUsageRepository : IAddressVerificationUsageRep
 {
     private readonly IRepository<AddressLookupUsageStatistic> _addressVerificationUsageRepository;
     private readonly IStoreContext _storeContext;
+    private readonly ILogging _log;
 
-    public AddressVerificationUsageRepository(IStoreContext storeContext, IRepository<AddressLookupUsageStatistic> addressVerificationUsageRepository)
+    public AddressVerificationUsageRepository(IStoreContext storeContext, IRepository<AddressLookupUsageStatistic> addressVerificationUsageRepository, ILogging log)
     {
         _storeContext = storeContext;
         _addressVerificationUsageRepository = addressVerificationUsageRepository;
+        _log = log;
     }
     public async Task UpdateUsageStatisticsAsync(bool success)
     {
@@ -29,7 +31,15 @@ internal class AddressVerificationUsageRepository : IAddressVerificationUsageRep
                 Calls = 1,
                 Success = 1,
             };
-            await _addressVerificationUsageRepository.InsertAsync(newRecord);
+
+            try
+            {
+                await _addressVerificationUsageRepository.InsertAsync(newRecord);
+            }
+            catch (Exception e)
+            {
+                _log.LogError("Failed to insert usage log", e);
+            }
             return;
         }
 
@@ -38,8 +48,16 @@ internal class AddressVerificationUsageRepository : IAddressVerificationUsageRep
         {
             stats.Success++;
         }
-        await _addressVerificationUsageRepository.UpdateAsync(stats);
+        try
+        {
+            await _addressVerificationUsageRepository.UpdateAsync(stats);
 
+        }
+        catch (Exception e)
+        {
+
+            _log.LogError("Failed to update usage log", e);
+        }
     }
 }
 

@@ -21,6 +21,7 @@ public class NopStartup : INopStartup
         services.AddScoped<IAddressRepository, AddressRepository>();
         services.AddScoped<ICustomTaxRulesSettingsService, SettingService>();
         services.AddScoped<IAddressVerificationUsageRepository, AddressVerificationUsageRepository>();
+        services.AddScoped<ILogging, Log>();
     }
 }
 
