@@ -77,6 +77,7 @@ public class CustomTaxRule : BasePlugin, ITaxProvider
                         .SetTimeToLive(CustomTaxRuleDefaults.BaseTimeToLive)
                         .SetEndpoint(CustomTaxRuleDefaults.AddressVerifyEndpoint)
                         .SetBaseTaxRate(CustomTaxRuleDefaults.BaseTaxRate)
+                        .SetTaxExemptions(CustomTaxRuleDefaults.TaxExceptions)
                         .Generate();
 
         await _settingsService.SaveSettingsAsync(settings);

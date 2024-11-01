@@ -15,6 +15,13 @@ public class SettingService : ICustomTaxRulesSettingsService
         _settingService = settingService;
         _storeContext = storeContext;
     }
+    public async Task<CustomTaxRuleSettings> GetSystemSettingsAsync()
+    {
+        var storeScope = await _storeContext.GetActiveStoreScopeConfigurationAsync();
+        var settings = await _settingService.LoadSettingAsync<CustomTaxRuleSettings>(storeScope);
+
+        return settings;
+    }
     public async Task SaveSettingsAsync(CustomTaxRuleSettings settings)
     {
         await _settingService.SaveSettingAsync(settings);

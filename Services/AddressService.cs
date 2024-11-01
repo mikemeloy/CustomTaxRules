@@ -11,9 +11,11 @@ public class AddressService : IAddressService
     private readonly IAddressVerificationRepository _addressVerificationRepository;
     private readonly IAddressRepository _addressRepository;
     private readonly HttpClient _httpClient;
+    private readonly ILogging _log;
 
-    public AddressService(HttpClient httpClient, IAddressVerificationRepository addressVerificationRepository, IAddressRepository addressRepository, IAddressVerificationUsageRepository addressVerificationUsageRepository)
+    public AddressService(HttpClient httpClient, ILogging log, IAddressVerificationRepository addressVerificationRepository, IAddressRepository addressRepository, IAddressVerificationUsageRepository addressVerificationUsageRepository)
     {
+        _log = log;
         _httpClient = httpClient;
         _addressVerificationRepository = addressVerificationRepository;
         _addressRepository = addressRepository;
@@ -35,7 +37,8 @@ public class AddressService : IAddressService
         var addressLookup = AddressLookup
                                 .Init(
                                     httpClient: _httpClient,
-                                    addressVerificationUsageRepository: _addressVerificationUsageRepository
+                                    addressVerificationUsageRepository: _addressVerificationUsageRepository,
+                                    log: _log
                                 )
                                 .SetStreet(street)
                                 .SetCityStateZip(postalCode)
@@ -55,7 +58,8 @@ public class AddressService : IAddressService
         var addressLookup = AddressLookup
                                 .Init(
                                     httpClient: _httpClient,
-                                    addressVerificationUsageRepository: _addressVerificationUsageRepository
+                                    addressVerificationUsageRepository: _addressVerificationUsageRepository,
+                                    log: _log
                                 )
                                 .SetStreet(address.Address1)
                                 .SetCityStateZip(address.ZipPostalCode)

@@ -21,7 +21,14 @@ internal class AddressLookup : IStepInit, IStepAddressStreet, IStepAddressCitySt
         _log = log;
         _addressVerificationUsageRepository = addressVerificationUsageRepository;
     }
-    public static IStepInit Init(HttpClient httpClient, IAddressVerificationUsageRepository addressVerificationUsageRepository) => new AddressLookup(httpClient, addressVerificationUsageRepository);
+    public static IStepInit Init(HttpClient httpClient, IAddressVerificationUsageRepository addressVerificationUsageRepository, ILogging log)
+    {
+        return new AddressLookup(
+                        httpClient: httpClient,
+                        addressVerificationUsageRepository: addressVerificationUsageRepository,
+                        log: log
+                    );
+    }
     public IStepAddressStreet SetStreet(string street)
     {
         _addressRequest.Street = street;
